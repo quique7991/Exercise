@@ -1,0 +1,5 @@
+{"id":1,"Message":"Agent, according to Inteligence there are some weight sensors along the way. When you hear the signal jump #1 times","Action":{"Type":"Jump","Amount":10,"Activate":"Time","Start":15}, "SuccessMessage":"Well done agent you have skipped the sensors", "FailingMessage":"You have activated the alarms, be ready for extraction", "FailDest":3,"SuccDest":2}
+
+{"id":2,"Message":"To enter the facilities, you have to crack a code please look at your cells screen and decipher it","Action":{"Type":"InfoRequest","Question":"Calculate 3+1","Result":4, "Activate":Time,"Start":10}, "SuccessMessage":"You have cracked the code, try not to get killed","FailingMessage":"Return to the base immediately","SuccDest":0,"FailDest":0}
+
+{"id":3,"Message":"The helicopter for your extraction will be arriving shortly. Go to the address indicated in your phone in less than #1 minutes","Action":{"Type":"TimeTrial","Amount":5,"Activate":"Immediate"}, "SuccessMessage":"The helicopter will take you back to the base, well done agent","FailingMessage":"The chopper has left, you are on your own now","FailDest":0,"SuccDest":0}

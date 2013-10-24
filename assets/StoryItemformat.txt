@@ -1,0 +1,4 @@
+{id:<number>,Message:<String>,Action:{
+								Type:<String>,Amount:<number>,Activate:<String>,Start:<number>
+								}
+								, SuccessMessage:<String>,FailMessage:String,SuccDest:<number>,FailDest:<number>}

@@ -1,0 +1,3 @@
+timetrial: "Llegar a una ubicacion especifica en un tiempo menor al dado, la ubicacion se define como un rectangulo de cierta longitud"
+jump: "Saltar una cierta cantidad de veces"
+InfoRequest: "Solicitar informacion al usuario que debe ser introducida por medio de 
