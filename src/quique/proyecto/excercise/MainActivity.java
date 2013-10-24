@@ -2,7 +2,20 @@ package quique.proyecto.excercise;
 
 import java.util.ArrayList;
 import java.util.Random;
-import java.lang.Math;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.Toast;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.CancelableCallback;
@@ -18,15 +31,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-
-import android.graphics.Color;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.Bundle;
-import android.app.Activity;
-import android.view.Menu;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -51,6 +55,26 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		Button button = (Button) findViewById(R.id.button1);
+		button.setClickable(false);
+		button.setOnClickListener(new OnClickListener(){
+
+			@Override
+			public void onClick(View arg0) {
+				LatLng RecMark = CreatePointOnArea();
+ 				googleMap.addMarker(new MarkerOptions()
+				.position(RecMark)
+		        .title("RandomPoint"));			
+ 				}
+			
+		});
+		button = (Button) findViewById(R.id.button2);
+		button.setOnClickListener(new OnClickListener(){
+			public void onClick(View v){
+				Intent intent = new Intent(v.getContext(),JsonActivity.class);
+				startActivity(intent);
+			}
+		});
         arrayPoints = new ArrayList<LatLng>();
 		uRand = new Random();
 		vRand = new Random();
@@ -106,14 +130,18 @@ public class MainActivity extends Activity {
             		polygonOptions = new PolygonOptions();
             		marker1Position = marker1.getPosition();
             		marker2Position = marker2.getPosition();
+            	}
+
+				@Override
+				public void onMarkerDragEnd(Marker arg0) {
             		if((marker1Position != null)&&(marker2Position!=null)){
             			upperLeft = new LatLng(marker1Position.latitude,marker1Position.longitude);
+            			bottomRight = new LatLng(marker2Position.latitude,marker2Position.longitude);
+            			upperRight = new LatLng(marker1Position.latitude,marker2Position.longitude);
+            			bottomLeft = new LatLng(marker2Position.latitude,marker1Position.longitude);
             			arrayPoints.add(upperLeft);
-            			bottomRight = new LatLng(marker2Position.latitude,marker1Position.longitude);
-            			arrayPoints.add(bottomRight);
-            			upperRight = new LatLng(marker2Position.latitude,marker2Position.longitude);
             			arrayPoints.add(upperRight);
-            			bottomLeft = new LatLng(marker1Position.latitude,marker2Position.longitude);
+            			arrayPoints.add(bottomRight);
             			arrayPoints.add(bottomLeft);
             			polygonOptions.addAll(arrayPoints);
             			polygonOptions.strokeColor(Color.BLUE);
@@ -121,12 +149,6 @@ public class MainActivity extends Activity {
             			polygonOptions.fillColor(Color.TRANSPARENT);
             			polygon = googleMap.addPolygon(polygonOptions);
             		}
-            	}
-
-				@Override
-				public void onMarkerDragEnd(Marker arg0) {
-					// TODO Auto-generated method stub
-					
 				}
 
 				@Override
@@ -202,6 +224,8 @@ public class MainActivity extends Activity {
 
             }
         }
+        Button but = (Button) findViewById(R.id.button1);
+        but.setClickable(true);
     }
  
     @Override
@@ -215,18 +239,31 @@ public class MainActivity extends Activity {
     	Random n = new Random();
     	randU = n.nextDouble();
     	randV = n.nextDouble();
-    	///Radius to degrees
-    	double r = distance / 111300f;
-    	double w = r;
-    	double t = 2 * Math.PI * randV;
-    	double x = w * Math.cos(t);
-    	double y = w * Math.sin(t);
     	double x0 = initial.longitude;
     	double y0 = initial.latitude;
-    	double xPrime = x/Math.cos(y0);
+    	///Radius to degrees
+    	double r = distance;
+    	double w = r;
+    	double t = 2 * Math.PI * randV;
+    	double y = w * Math.sin(t)/110540f;
+    	double x = w * Math.cos(t)/(111320f*Math.cos((y+y0)/180*Math.PI));
     	LatLng respuesta;
-    	respuesta = new LatLng(y+y0,xPrime+x0);
+    	respuesta = new LatLng(y+y0,x+x0);
     	return respuesta;   	
+    }
+    
+    private LatLng CreatePointOnArea(){
+    	double MaxLatitude = upperLeft.latitude;
+    	double MinLatitude = bottomRight.latitude;
+    	double MaxLongitud = bottomRight.longitude;
+    	double MinLongitud = upperLeft.longitude;
+    	double LatitudeDiff = Math.abs(MaxLatitude-MinLatitude);
+    	double LongitudeDiff = Math.abs(MaxLongitud - MinLongitud);
+    	double LatRes = MinLatitude + (Math.random() * LatitudeDiff);
+    	double LongRes = MinLongitud + (Math.random() * LongitudeDiff);
+    	LatLng ReturnVal;
+    	ReturnVal = new LatLng(LatRes,LongRes);
+    	return ReturnVal;
     }
 
 }
