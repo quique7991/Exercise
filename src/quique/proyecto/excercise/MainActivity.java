@@ -1,6 +1,7 @@
 package quique.proyecto.excercise;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import android.app.Activity;
@@ -10,6 +11,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,6 +33,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MainActivity extends Activity {
 
@@ -45,6 +49,7 @@ public class MainActivity extends Activity {
     LatLng marker2Position;
     Marker marker1;
     Marker marker2;
+    Polyline route;
     PolygonOptions polygonOptions;
     private ArrayList<LatLng> arrayPoints = null;
     Polygon polygon;
@@ -71,7 +76,7 @@ public class MainActivity extends Activity {
 		button = (Button) findViewById(R.id.button2);
 		button.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
-				Intent intent = new Intent(v.getContext(),JsonActivity.class);
+				Intent intent = new Intent(v.getContext(),SensorTestActivity.class);
 				startActivity(intent);
 			}
 		});
@@ -106,14 +111,23 @@ public class MainActivity extends Activity {
 				@Override
 				public void onMapLongClick(LatLng arg0) {
 					LatLng newPoint = randomDistance(1000,arg0);
-					googleMap.addCircle(new CircleOptions()
+					ArrayList<LatLng> points = new ArrayList<LatLng>();
+					points.add(newPoint);
+					LatLng location = new LatLng(latitude,longitude);
+					points.add(location);
+					points.add(upperRight);
+					points.add(bottomLeft);
+					points.add(upperLeft);
+					points.add(bottomRight);
+					addRoute(points);
+					/*googleMap.addCircle(new CircleOptions()
 				     .center(arg0)
 				     .radius(1000)
 				     .strokeColor(Color.RED)
 				     .strokeWidth(7));
      				googleMap.addMarker(new MarkerOptions()
      				 	.position(newPoint)
-				        .title("RandomPoint"));
+				        .title("RandomPoint"));*/
 
 				}
             	
@@ -130,18 +144,14 @@ public class MainActivity extends Activity {
             		polygonOptions = new PolygonOptions();
             		marker1Position = marker1.getPosition();
             		marker2Position = marker2.getPosition();
-            	}
-
-				@Override
-				public void onMarkerDragEnd(Marker arg0) {
             		if((marker1Position != null)&&(marker2Position!=null)){
             			upperLeft = new LatLng(marker1Position.latitude,marker1Position.longitude);
-            			bottomRight = new LatLng(marker2Position.latitude,marker2Position.longitude);
-            			upperRight = new LatLng(marker1Position.latitude,marker2Position.longitude);
-            			bottomLeft = new LatLng(marker2Position.latitude,marker1Position.longitude);
             			arrayPoints.add(upperLeft);
-            			arrayPoints.add(upperRight);
+            			bottomRight = new LatLng(marker2Position.latitude,marker1Position.longitude);
             			arrayPoints.add(bottomRight);
+            			upperRight = new LatLng(marker2Position.latitude,marker2Position.longitude);
+            			arrayPoints.add(upperRight);
+            			bottomLeft = new LatLng(marker1Position.latitude,marker2Position.longitude);
             			arrayPoints.add(bottomLeft);
             			polygonOptions.addAll(arrayPoints);
             			polygonOptions.strokeColor(Color.BLUE);
@@ -149,6 +159,11 @@ public class MainActivity extends Activity {
             			polygonOptions.fillColor(Color.TRANSPARENT);
             			polygon = googleMap.addPolygon(polygonOptions);
             		}
+            	}
+
+				@Override
+				public void onMarkerDragEnd(Marker arg0) {
+					// TODO Auto-generated method stub
 				}
 
 				@Override
@@ -266,4 +281,18 @@ public class MainActivity extends Activity {
     	return ReturnVal;
     }
 
+    private int addRoute(ArrayList<LatLng> points){
+        if (route != null) {
+            Log.i("removing line", "removed");
+            route.remove();
+            route = null;
+        }	
+    	PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+    	for(int i=0; i<points.size();i++){
+    	    LatLng point = points.get(i);
+    	    options.add(point);	
+    	}
+    	route = googleMap.addPolyline(options);
+    	return 0;
+    }
 }

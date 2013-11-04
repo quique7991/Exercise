@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Excercise</string>
+    <string name="app_name">Exercise</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="button">Seleccionar área</string>
     <string name="ButOk">OK</string>
     <string name="title_activity_json">JsonActivity</string>
-
+    <string name="boton">Take Picture</string>
+    <string name="shake">Shake to get a toast and to switch color</string>
 </resources>
