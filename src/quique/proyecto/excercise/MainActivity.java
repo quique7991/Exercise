@@ -1,16 +1,20 @@
 package quique.proyecto.excercise;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -26,7 +30,6 @@ import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -36,9 +39,10 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements TextToSpeech.OnInitListener{
 
     // Google Map-> Escuela de ingenieria electrica
+	private TextToSpeech myTTS;
 	double latitude = 9.936961;
 	double longitude = -84.044029;
     LatLng upperLeft;
@@ -56,6 +60,7 @@ public class MainActivity extends Activity {
     private GoogleMap googleMap;
     Random uRand,vRand;
     double randU,randV;
+    private List<StoryItem> story;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,10 +81,12 @@ public class MainActivity extends Activity {
 		button = (Button) findViewById(R.id.button2);
 		button.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
-				Intent intent = new Intent(v.getContext(),SensorTestActivity.class);
-				startActivity(intent);
+				/*Intent intent = new Intent(v.getContext(),SensorTestActivity.class);
+				startActivity(intent);*/
+				speakWords(story.get(0).Fail);
 			}
 		});
+		
         arrayPoints = new ArrayList<LatLng>();
 		uRand = new Random();
 		vRand = new Random();
@@ -90,6 +97,23 @@ public class MainActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        AssetManager am = getAssets();
+        StoryReader storyReader = null;
+        try {
+			storyReader = new StoryReader(am.open("History.json"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        if(storyReader != null){
+        	try {
+				story = storyReader.GetStory();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        myTTS = new TextToSpeech(this, this);
 	}
 
 	@Override
@@ -294,5 +318,21 @@ public class MainActivity extends Activity {
     	}
     	route = googleMap.addPolyline(options);
     	return 0;
+    }
+    
+    public void onInit(int initStatus) {
+        //check for successful instantiation
+    	if (initStatus == TextToSpeech.SUCCESS) {
+    		if(myTTS.isLanguageAvailable(Locale.US)==TextToSpeech.LANG_AVAILABLE)
+    			myTTS.setLanguage(Locale.US);
+    	}
+    	else if (initStatus == TextToSpeech.ERROR) {
+    		Toast.makeText(this, "Sorry! Text To Speech failed...", Toast.LENGTH_LONG).show();
+    	}
+    }
+
+    private void speakWords(String speech) {
+        //speak straight away
+        myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
 }
