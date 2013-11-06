@@ -1,7 +1,7 @@
 package quique.proyecto.excercise;
 
 public class StoryItem {
-	public static enum ActionType{Jump,Photo};
+	public static enum ActionType{Jump,Photo,North,Focus};
 	public static class Action{
 		public ActionType Tipo;
 		public int Cantidad;

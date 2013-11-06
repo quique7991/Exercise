@@ -72,12 +72,14 @@ LocationListener
 	private TextToSpeech myTTS;
     private List<StoryItem> story;
     private StoryItem actualStoryItem;
+    private boolean notOnAction = true;
     
     //Location Update Objects
     LocationRequest mLocationRequest;
     LocationClient mLocationClient;
     Location PreviousLocation,InitialLocation;
     double distance, MinDistance = 0.0, DistanceChange;
+    
     
     @Override
     protected void onStart(){
@@ -431,8 +433,11 @@ LocationListener
 
 	@Override
 	public void onLocationChanged(Location location) {
+		Toast.makeText(this, "Location Update",
+                Toast.LENGTH_SHORT).show();
 		Pedometer(location);
-		if(distance > MinDistance){
+		if(distance > MinDistance && notOnAction){
+			notOnAction = false;
 			ManageStoryAction(location);
 		}
 	}
@@ -441,7 +446,7 @@ LocationListener
 		float []results = new float[3];
 		Location.distanceBetween(PreviousLocation.getLatitude(), PreviousLocation.getLongitude(), 
 				location.getLatitude(), location.getLongitude(), results);
-		if(results[0] > 2.0f){
+		if(results[0] > 2.0f && results[0] < 50.0){
 			distance += results[0];
 		}
 		PreviousLocation = location;
@@ -457,9 +462,16 @@ LocationListener
 				startActivityForResult(intent,0);
 				break;
 			case Photo:
-				Toast.makeText(this, "Photo Found", Toast.LENGTH_SHORT).show();
 				intent = new Intent(this,cameraActivity.class);
-				startActivityForResult(intent,1);
+				startActivityForResult(intent,0);
+				break;
+			case North:
+				intent = new Intent(this, MagneticActivity.class);
+				startActivityForResult(intent,0);
+				break;
+			case Focus:
+				intent = new Intent(this, Ball.class);
+				startActivityForResult(intent,0);
 				break;
 			default:
 				break;
@@ -483,5 +495,6 @@ LocationListener
 				speakWords("Your Current Mission Has Ended");
 			}
 		}
+		notOnAction = true;
 	}
 }

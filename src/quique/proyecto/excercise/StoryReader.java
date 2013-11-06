@@ -67,7 +67,11 @@ public class StoryReader  {
 					type = StoryItem.ActionType.Jump;
 				} else if(typeAct.equals("Photo")){
 					type = StoryItem.ActionType.Photo;
-				} 
+				} else if(typeAct.equals("North")){
+					type = StoryItem.ActionType.North;
+				} else if(typeAct.equals("Focus")){
+					type = StoryItem.ActionType.Focus;
+				}
 			} else if(name.equals("Quantity")){
 				Cantidad = reader.nextInt();
 			} else {
