@@ -3,8 +3,8 @@
 		"Message":"Agent, according to Inteligence there are some weight sensors along the way. When you hear the signal jump #1 times",
 		"Success":"Well done agent you have skipped the sensors", 
 		"Fail":"You have activated the alarms, be ready for extraction", 
-		"FailDest":3,
-		"SuccDest":2,
+		"FailDest":2,
+		"SuccDest":1,
 		"Action":{
 			"Type":"Jump",
 			"Quantity":10

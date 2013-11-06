@@ -22,6 +22,12 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.CancelableCallback;
@@ -39,33 +45,68 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-public class MainActivity extends Activity implements TextToSpeech.OnInitListener{
-
+public class MainActivity extends Activity 
+implements TextToSpeech.OnInitListener,
+GooglePlayServicesClient.ConnectionCallbacks,
+GooglePlayServicesClient.OnConnectionFailedListener,
+LocationListener
+{
     // Google Map-> Escuela de ingenieria electrica
-	private TextToSpeech myTTS;
 	double latitude = 9.936961;
 	double longitude = -84.044029;
-    LatLng upperLeft;
-    LatLng bottomRight;
-    LatLng upperRight;
-    LatLng bottomLeft;
-    LatLng marker1Position;
-    LatLng marker2Position;
-    Marker marker1;
-    Marker marker2;
+	
+	//Google Map Interface Variables
+    LatLng upperLeft,bottomRight,upperRight,bottomLeft,marker1Position,marker2Position;
+    Marker marker1,marker2;
     Polyline route;
     PolygonOptions polygonOptions;
-    private ArrayList<LatLng> arrayPoints = null;
     Polygon polygon;
+    private ArrayList<LatLng> arrayPoints = null;
     private GoogleMap googleMap;
+    
+    //Creation of Random points variables
     Random uRand,vRand;
     double randU,randV;
+    
+    //Creation of Story Objects
+	private TextToSpeech myTTS;
     private List<StoryItem> story;
+    private StoryItem actualStoryItem;
+    
+    //Location Update Objects
+    LocationRequest mLocationRequest;
+    LocationClient mLocationClient;
+    Location PreviousLocation,InitialLocation;
+    double distance, MinDistance = 0.0, DistanceChange;
+    
+    @Override
+    protected void onStart(){
+    	super.onStart();
+    	if(!mLocationClient.isConnected()){
+    		mLocationClient.connect();
+    	}
+    }
+    
+    @Override
+    protected void onDestroy(){
+    	if(myTTS != null){
+    		myTTS.stop();
+    		myTTS.shutdown();
+    	}
+    	if(mLocationClient.isConnected()){
+    		mLocationClient.removeLocationUpdates(this);
+    	}
+    	mLocationClient.disconnect();
+    	super.onDestroy();
+    }
+    
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		Button button = (Button) findViewById(R.id.button1);
+		//Definition of Area Selection Button Callback
+		Button button = (Button) findViewById(R.id.ArSel);
 		button.setClickable(false);
 		button.setOnClickListener(new OnClickListener(){
 
@@ -78,7 +119,9 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
  				}
 			
 		});
-		button = (Button) findViewById(R.id.button2);
+		
+		//Definition of Ok Button CallBack
+		button = (Button) findViewById(R.id.OKBut);
 		button.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
 				/*Intent intent = new Intent(v.getContext(),SensorTestActivity.class);
@@ -87,6 +130,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 			}
 		});
 		
+		//Map initialization
         arrayPoints = new ArrayList<LatLng>();
 		uRand = new Random();
 		vRand = new Random();
@@ -97,6 +141,9 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        //Story and Text to Speech Initialization
+        myTTS = new TextToSpeech(this, this);
         AssetManager am = getAssets();
         StoryReader storyReader = null;
         try {
@@ -108,12 +155,22 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         if(storyReader != null){
         	try {
 				story = storyReader.GetStory();
+				actualStoryItem = story.get(0);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
         }
-        myTTS = new TextToSpeech(this, this);
+    
+        //Localization Update Initialization
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1500);
+        mLocationClient = new LocationClient(this,this,this);
+        distance = 0.0;
+        DistanceChange = 300;
+	
 	}
 
 	@Override
@@ -122,6 +179,20 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+	//Checking for Google Play Services in the phone. If they are not installed, then the program won't work
+	private boolean servicesConnected(){
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+		if(ConnectionResult.SUCCESS == resultCode){
+			Log.d("Location Updates", "Google Play services is available");
+			return true;
+		} else {
+                Toast.makeText(getApplicationContext(),
+                        "Sorry! unable to connect to Play Services", Toast.LENGTH_SHORT).show();
+            return false;
+		}
+	}
+	
 	
     /**
      * function to load map. If map is not created it will create it for you
@@ -217,6 +288,8 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
             // Getting Current Location
             Location location = locationManager.getLastKnownLocation(provider);
 
+            PreviousLocation = location;
+            
             if(location!=null){
             	// Getting latitude of the current location
             	latitude = location.getLatitude();
@@ -263,7 +336,7 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
 
             }
         }
-        Button but = (Button) findViewById(R.id.button1);
+        Button but = (Button) findViewById(R.id.ArSel);
         but.setClickable(true);
     }
  
@@ -335,4 +408,80 @@ public class MainActivity extends Activity implements TextToSpeech.OnInitListene
         //speak straight away
         myTTS.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
     }
+
+	@Override
+	public void onConnectionFailed(ConnectionResult arg0) {
+		// TODO Auto-generated method stub
+		Toast.makeText(this, "Connection to Location Client Failed", Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		// TODO Auto-generated method stub
+		Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+		mLocationClient.requestLocationUpdates(mLocationRequest, this);
+	}
+
+	@Override
+	public void onDisconnected() {
+		// TODO Auto-generated method stub
+		Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		Pedometer(location);
+		if(distance > MinDistance){
+			ManageStoryAction(location);
+		}
+	}
+	
+	public void Pedometer(Location location){
+		float []results = new float[3];
+		Location.distanceBetween(PreviousLocation.getLatitude(), PreviousLocation.getLongitude(), 
+				location.getLatitude(), location.getLongitude(), results);
+		if(results[0] > 2.0f){
+			distance += results[0];
+		}
+		PreviousLocation = location;
+	}
+	
+	public void ManageStoryAction(Location location){
+		MinDistance+=DistanceChange;
+		speakWords(actualStoryItem.Mensaje);
+		Intent intent;
+		switch(actualStoryItem.action.Tipo){
+			case Jump:
+				 intent = new Intent(this,SensorTestActivity.class);
+				startActivityForResult(intent,0);
+				break;
+			case Photo:
+				Toast.makeText(this, "Photo Found", Toast.LENGTH_SHORT).show();
+				intent = new Intent(this,cameraActivity.class);
+				startActivityForResult(intent,1);
+				break;
+			default:
+				break;
+		}
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(resultCode == RESULT_OK){
+			speakWords(actualStoryItem.Success);
+			if(actualStoryItem.SuccDest != -1){
+				actualStoryItem = story.get(actualStoryItem.SuccDest);
+			} else {
+				speakWords("Your Current Mission Has Ended");
+			}
+		} else {
+			speakWords(actualStoryItem.Fail);
+			if(actualStoryItem.SuccDest != -1){
+				actualStoryItem = story.get(actualStoryItem.FailDest);
+			} else {
+				speakWords("Your Current Mission Has Ended");
+			}
+		}
+	}
 }

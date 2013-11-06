@@ -188,12 +188,12 @@ containing a value of this type.
         public static final int upleft=0x7f02001e;
     }
     public static final class id {
+        public static final int ArSel=0x7f05000c;
+        public static final int OKBut=0x7f05000d;
         public static final int RelativeLayout1=0x7f05000a;
         public static final int action_settings=0x7f05000f;
         public static final int btnCapturePicture=0x7f050005;
         public static final int btnRecordVideo=0x7f050006;
-        public static final int button1=0x7f05000c;
-        public static final int button2=0x7f05000d;
         public static final int camera=0x7f050010;
         public static final int hybrid=0x7f050004;
         public static final int imgPreview=0x7f050007;

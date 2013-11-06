@@ -1,5 +1,6 @@
 package quique.proyecto.excercise;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -74,6 +75,9 @@ public class SensorTestActivity extends Activity implements SensorEventListener 
 		    	  }
 		    	  color = !color;
 		    	  counter = 0;
+		    	  Intent intent = new Intent();
+		    	  setResult(Activity.RESULT_OK,intent);
+		    	  finish();
 		      }
 		    }
 		  }
@@ -93,6 +97,12 @@ public class SensorTestActivity extends Activity implements SensorEventListener 
 	    // unregister listener
 	    super.onPause();
 	    sensorManager.unregisterListener(this);
+	  }
+	  
+	  protected void onDestroy(){
+		  Intent intent = new Intent();
+		  setResult(Activity.RESULT_CANCELED,intent);
+		  super.onDestroy();
 	  }
 
 	
