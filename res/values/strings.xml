@@ -4,9 +4,20 @@
     <string name="app_name">Exercise</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="button">Seleccionar área</string>
+    <string name="button">EndPoint</string>
     <string name="ButOk">OK</string>
     <string name="title_activity_json">JsonActivity</string>
+    <string name="title_activity_magnetic">Magnetic</string>
+    <string name="title_activity_final">Final Results</string>
+    <string name="title_activity_ball">Move the ball</string>
     <string name="boton">Take Picture</string>
     <string name="shake">Shake to get a toast and to switch color</string>
+    <string name="record">Record a Video</string>
+    <string name="preview">Preview</string>
+    <string name="description">Description</string>
+    <string name="end">End of the game!</string>
+    <string name="random"></string>
+    <string name="tiempo">Duration</string>
+    <string name="distancia">Distance</string>
+	<string name="velocidad">Avg. speed</string>
 </resources>

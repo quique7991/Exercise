@@ -6,7 +6,7 @@
 		"FailDest":2,
 		"SuccDest":1,
 		"Action":{
-			"Type":"Jump",
+			"Type":"North",
 			"Quantity":10
 		}
 	},
@@ -29,7 +29,7 @@
 		}, 
 		"Success":"The helicopter will take you back to the base, well done agent",
 		"Fail":"The chopper has left, you are on your own now",
-		"FailDest":0,
-		"SuccDest":0
+		"FailDest":-1,
+		"SuccDest":-1
 	}
 ]

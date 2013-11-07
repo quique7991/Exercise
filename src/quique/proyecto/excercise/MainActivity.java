@@ -1,12 +1,15 @@
 package quique.proyecto.excercise;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.Color;
@@ -14,6 +17,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.Menu;
@@ -56,14 +60,14 @@ LocationListener
 	double longitude = -84.044029;
 	
 	//Google Map Interface Variables
-    LatLng upperLeft,bottomRight,upperRight,bottomLeft,marker1Position,marker2Position;
+    LatLng upperLeft,bottomRight,upperRight,bottomLeft,marker1Position,marker2Position,EndPosition;
     Marker marker1,marker2;
     Polyline route;
     PolygonOptions polygonOptions;
     Polygon polygon;
     private ArrayList<LatLng> arrayPoints = null,RoutePoints = null;
     private GoogleMap googleMap;
-    
+    double EndUpLim,EndDownLim,EndLeftLim,EndRightLim;
     //Creation of Random points variables
     Random uRand,vRand;
     double randU,randV;
@@ -73,13 +77,18 @@ LocationListener
     private List<StoryItem> story;
     private StoryItem actualStoryItem;
     private boolean notOnAction = true;
+    private boolean notFinished = true;
+    private String StoryName;
     
     //Location Update Objects
     LocationRequest mLocationRequest;
     LocationClient mLocationClient;
     Location PreviousLocation,InitialLocation;
-    double distance, MinDistance = 0.0, DistanceChange;
+    double distance, MinDistance = 25, DistanceChange;
     
+    //Time measurement
+    CountDownTimer time;
+    int seconds,minutes;
     
     @Override
     protected void onStart(){
@@ -106,7 +115,22 @@ LocationListener
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		seconds = 0;
+		minutes = 0;
 		setContentView(R.layout.activity_main);
+		time = new CountDownTimer(60000, 1000) {//CountDownTimer(edittext1.getText()+edittext2.getText()) also parse it to long
+
+			 public void onTick(long millisUntilFinished) {
+				 ++seconds;
+			 }
+
+			 public void onFinish() {
+				 ++minutes;
+				 seconds=0;
+			     this.start();
+			 }
+		};
+
 		//
 		RoutePoints = new ArrayList<LatLng>();
 		//Definition of Area Selection Button Callback
@@ -117,9 +141,11 @@ LocationListener
 			@Override
 			public void onClick(View arg0) {
 				LatLng RecMark = CreatePointOnArea();
+				EndPosition = RecMark;
  				googleMap.addMarker(new MarkerOptions()
 				.position(RecMark)
-		        .title("RandomPoint"));			
+		        .title("RandomPoint").draggable(true));
+ 				arg0.setClickable(false);
  				}
 			
 		});
@@ -128,9 +154,7 @@ LocationListener
 		button = (Button) findViewById(R.id.OKBut);
 		button.setOnClickListener(new OnClickListener(){
 			public void onClick(View v){
-				/*Intent intent = new Intent(v.getContext(),SensorTestActivity.class);
-				startActivity(intent);*/
-				speakWords(story.get(0).Fail);
+				StartRunning();
 			}
 		});
 		
@@ -148,10 +172,35 @@ LocationListener
         
         //Story and Text to Speech Initialization
         myTTS = new TextToSpeech(this, this);
+    
+        //Localization Update Initialization
+        mLocationRequest = LocationRequest.create();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(2000);
+        mLocationRequest.setFastestInterval(1500);
+        mLocationClient = new LocationClient(this,this,this);
+        distance = 0.0;
+        DistanceChange = 25;
+        
+        StoryName = "History";
+	
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+	
+	
+	public void StartRunning(){
+		seconds = 0;
+		minutes = 0;
         AssetManager am = getAssets();
         StoryReader storyReader = null;
         try {
-			storyReader = new StoryReader(am.open("History.json"));
+			storyReader = new StoryReader(am.open(StoryName+".json"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -165,23 +214,16 @@ LocationListener
 				e.printStackTrace();
 			}
         }
-    
-        //Localization Update Initialization
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(2000);
-        mLocationRequest.setFastestInterval(1500);
-        mLocationClient = new LocationClient(this,this,this);
-        distance = 0.0;
-        DistanceChange = 300;
-	
+        CalculateEndCoordinates();
+        time.start();
+		mLocationClient.requestLocationUpdates(mLocationRequest, this);
 	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
+	
+	public void CalculateEndCoordinates(){
+		float []results = new float[3];
+		Location.distanceBetween(PreviousLocation.getLatitude(), PreviousLocation.getLongitude(), EndPosition.latitude, EndPosition.longitude, results);
+		Toast.makeText(this, "Distance Between Points is"+Float.toString(results[0]),
+                Toast.LENGTH_SHORT).show();
 	}
 	
 	//Checking for Google Play Services in the phone. If they are not installed, then the program won't work
@@ -238,6 +280,9 @@ LocationListener
             		if(polygon != null){
             			polygon.remove();
             			polygon = null;
+            		}
+            		if(marker.getTitle().equals("RandomPoint")){
+            			EndPosition = marker.getPosition();
             		}
             		arrayPoints.clear();
             		polygonOptions = new PolygonOptions();
@@ -423,7 +468,7 @@ LocationListener
 	public void onConnected(Bundle arg0) {
 		// TODO Auto-generated method stub
 		Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-		mLocationClient.requestLocationUpdates(mLocationRequest, this);
+		
 	}
 
 	@Override
@@ -435,12 +480,28 @@ LocationListener
 
 	@Override
 	public void onLocationChanged(Location location) {
-		Toast.makeText(this, Double.toString(distance),
-                Toast.LENGTH_SHORT).show();
+	//	Toast.makeText(this, Double.toString(distance),
+         //       Toast.LENGTH_SHORT).show();
 		Pedometer(location);
-		if(distance > MinDistance && notOnAction){
+		if(distance > MinDistance && notOnAction && notFinished){
 			notOnAction = false;
 			ManageStoryAction(location);
+		}else if(!notFinished && CheckForEnd(location)){
+			mLocationClient.removeLocationUpdates(this);
+			time.cancel();
+			String []Latitudes = new String[RoutePoints.size()];
+			String []Longitudes = new String[RoutePoints.size()];
+			for(int i = 0; i < RoutePoints.size();++i){
+				Latitudes[i] = Double.toString(RoutePoints.get(i).latitude);
+				Longitudes[i] = Double.toString(RoutePoints.get(i).longitude);
+			}
+			Intent intent = new Intent(this,FinalResults.class);
+			intent.putExtra("distance", distance);
+			intent.putExtra("minutes", minutes);
+			intent.putExtra("seconds", seconds);
+			intent.putExtra("Latitudes", Latitudes);
+			intent.putExtra("Longitudes", Longitudes);
+			startActivity(intent);
 		}
 	}
 	
@@ -481,6 +542,7 @@ LocationListener
 		}
 	}
 	
+	//@SuppressWarnings("unchecked")
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(resultCode == RESULT_OK){
@@ -489,6 +551,7 @@ LocationListener
 				actualStoryItem = story.get(actualStoryItem.SuccDest);
 			} else {
 				speakWords("Your Current Mission Has Ended");
+				notFinished = false;
 			}
 		} else {
 			speakWords(actualStoryItem.Fail);
@@ -496,10 +559,21 @@ LocationListener
 				actualStoryItem = story.get(actualStoryItem.FailDest);
 			} else {
 				speakWords("Your Current Mission Has Ended");
+				notFinished = false;
 			}
 		}
-		addRoute(RoutePoints);
 		notOnAction = true;
-		RoutePoints.clear();
+	}
+	
+	public boolean CheckForEnd(Location location){
+		float []results = new float[3];
+		Location.distanceBetween(EndPosition.latitude, EndPosition.longitude, PreviousLocation.getLatitude(), PreviousLocation.getLongitude(), results);
+		Toast.makeText(this, "The current distance is"+Float.toString(results[0]),
+                Toast.LENGTH_SHORT).show();
+		if(results[0] < 50){
+			return true;
+		} else{
+			return false;
+		}
 	}
 }

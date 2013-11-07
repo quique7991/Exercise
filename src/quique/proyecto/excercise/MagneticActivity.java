@@ -2,6 +2,7 @@ package quique.proyecto.excercise;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -45,6 +46,9 @@ public class MagneticActivity extends Activity implements SensorEventListener {
         	Toast.makeText(getApplicationContext(),
         			("NORTE"),
         			Toast.LENGTH_LONG).show(); 
+      	  	Intent intent = new Intent();
+      	  	setResult(Activity.RESULT_OK,intent);
+      	  	finish();
         }
       }
 

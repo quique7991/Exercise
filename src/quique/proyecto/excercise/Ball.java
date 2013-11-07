@@ -3,6 +3,7 @@ package quique.proyecto.excercise;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -46,6 +47,10 @@ public class Ball extends Activity implements SensorEventListener {
 		        	Toast.makeText(getApplicationContext(),
 		        			("Got IT"),
 		        			Toast.LENGTH_LONG).show(); 
+		      	  	Intent intent = new Intent();
+		      	  	setResult(Activity.RESULT_OK,intent);
+		      	  	finish();
+		        	
 			  }
 		  }
 		  

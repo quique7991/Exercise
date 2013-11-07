@@ -34,14 +34,28 @@
         android:text="@+string/button" />
 
     <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/ArSel"
+        android:text="PickStory" />
+
+    <Button
         android:id="@+id/OKBut"
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/ArSel"
-        android:layout_alignBottom="@+id/ArSel"
-        android:layout_alignRight="@+id/map"
-        android:layout_marginRight="27dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/map"
         android:text="@string/ButOk" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/button1"
+        android:text="Settings" />
 
 </RelativeLayout>
