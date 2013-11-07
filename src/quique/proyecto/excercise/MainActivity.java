@@ -61,7 +61,7 @@ LocationListener
     Polyline route;
     PolygonOptions polygonOptions;
     Polygon polygon;
-    private ArrayList<LatLng> arrayPoints = null;
+    private ArrayList<LatLng> arrayPoints = null,RoutePoints = null;
     private GoogleMap googleMap;
     
     //Creation of Random points variables
@@ -107,6 +107,8 @@ LocationListener
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		//
+		RoutePoints = new ArrayList<LatLng>();
 		//Definition of Area Selection Button Callback
 		Button button = (Button) findViewById(R.id.ArSel);
 		button.setClickable(false);
@@ -433,7 +435,7 @@ LocationListener
 
 	@Override
 	public void onLocationChanged(Location location) {
-		Toast.makeText(this, "Location Update",
+		Toast.makeText(this, Double.toString(distance),
                 Toast.LENGTH_SHORT).show();
 		Pedometer(location);
 		if(distance > MinDistance && notOnAction){
@@ -447,6 +449,7 @@ LocationListener
 		Location.distanceBetween(PreviousLocation.getLatitude(), PreviousLocation.getLongitude(), 
 				location.getLatitude(), location.getLongitude(), results);
 		if(results[0] > 2.0f && results[0] < 50.0){
+			RoutePoints.add(new LatLng(PreviousLocation.getLatitude(),PreviousLocation.getLongitude()));
 			distance += results[0];
 		}
 		PreviousLocation = location;
@@ -495,6 +498,8 @@ LocationListener
 				speakWords("Your Current Mission Has Ended");
 			}
 		}
+		addRoute(RoutePoints);
 		notOnAction = true;
+		RoutePoints.clear();
 	}
 }
